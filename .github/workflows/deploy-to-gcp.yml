@@ -42,7 +42,6 @@ jobs:
           --timeout=540 \
           --trigger-http \
           --service-account=180179603737-compute@developer.gserviceaccount.com
-        gcloud beta scheduler jobs delete mmsic-split-files --quiet
         echo "Deploy Cloud Scheduler"
         gcloud scheduler jobs create http mmsic-split-files \
           --description="Split MMS IC files to fixed length" \
