@@ -38,7 +38,7 @@ jobs:
           --memory=1GiB \
           --max-instances=1 \
           --runtime=python37 \
-          --source=split-mms-ic-files \
+          --source=split-mmsic-files \
           --timeout=540 \
           --trigger-http \
           --service-account=180179603737-compute@developer.gserviceaccount.com
