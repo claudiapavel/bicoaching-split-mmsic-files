@@ -3,12 +3,9 @@ name: MMS IC split files Deploy
 on:
   workflow_dispatch:
   push:
-    paths-ignore:
-    - '.github/workflows/cf-gcp-deploy-key-rotation.yml'
 
 jobs:
   deploy:
-    if: ${{ github.event_name == 'push' }} # deploy to GCP only for real push, no merge request
     strategy:
       max-parallel: 1
       matrix:
@@ -23,17 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Setup gcloud
-      if: ${{ (matrix.apply-on-branch || github.ref == 'refs/heads/master') }}
       uses: google-github-actions/setup-gcloud@master
       with:
         project_id: ${{ matrix.scheduler_project_id }}
         service_account_key: ${{ secrets[matrix.key] }}
         export_default_credentials: true
     - name: Checkout code
-      if: ${{ (matrix.apply-on-branch || github.ref == 'refs/heads/master') }}
       uses: actions/checkout@v2
     - name: Deploy to Cloud Functions
-      if: ${{ (matrix.apply-on-branch || github.ref == 'refs/heads/master') }}
       run: |
         echo "Set gcloud default project"
         gcloud config set project ${{ matrix.scheduler_project_id }}
