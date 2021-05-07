@@ -1,0 +1,56 @@
+name: MMS IC split files Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+    - '.github/workflows/cf-gcp-deploy-key-rotation.yml'
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'push' }} # deploy to GCP only for real push, no merge request
+    strategy:
+      max-parallel: 1
+      matrix:
+        environment: [s00]
+        include:
+        - environment: s00
+          apply-on-branch: false
+          key: DEPLOY_CREDENTIALS_BICOACHING_S00
+          scheduler_project_id: metro-bi-wb-bicoaching-s00
+          deploy_service_account: serviceAccount:ingestion-pipeline@metro-bi-di-ingestion-prod.iam.gserviceaccount.com
+    name: Deploy to GCP
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup gcloud
+      if: ${{ (matrix.apply-on-branch || github.ref == 'refs/heads/master') }}
+      uses: google-github-actions/setup-gcloud@master
+      with:
+        project_id: ${{ matrix.scheduler_project_id }}
+        service_account_key: ${{ secrets[matrix.key] }}
+        export_default_credentials: true
+    - name: Checkout code
+      if: ${{ (matrix.apply-on-branch || github.ref == 'refs/heads/master') }}
+      uses: actions/checkout@v2
+    - name: Deploy to Cloud Functions
+      if: ${{ (matrix.apply-on-branch || github.ref == 'refs/heads/master') }}
+      run: |
+        echo "Set gcloud default project"
+        gcloud config set project ${{ matrix.scheduler_project_id }}
+        echo "Deploy Cloud Functions"
+        gcloud functions deploy split-mmsic-files_test \
+          --region=europe-west1 \
+          --entry-point=main \
+          --memory=1GiB \
+          --max-instances=1 \
+          --runtime=python37 \
+          --source=split-mms-ic-files \
+          --timeout=540 \
+          --trigger-http \
+          --service-account=180179603737-compute@developer.gserviceaccount.com
+        echo "Deploy Cloud Scheduler"
+        gcloud scheduler jobs create http mmsic-split-files \
+          --description="Split MMS IC files to fixed length" \
+          --uri=https://europe-west1-metro-bi-wb-bicoaching-s00.cloudfunctions.net/mmsic-split-files \
+          --http-method=post \
+          --time-zone="Europe/Berlin"
