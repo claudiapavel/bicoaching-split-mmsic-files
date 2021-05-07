@@ -45,6 +45,6 @@ jobs:
         echo "Deploy Cloud Scheduler"
         gcloud scheduler jobs create http mmsic-split-files \
           --description="Split MMS IC files to fixed length" \
-          --uri=https://europe-west1-metro-bi-wb-bicoaching-s00.cloudfunctions.net/mmsic-split-files \
+          --uri=https://europe-west1-metro-bi-wb-bicoaching-s00.cloudfunctions.net/split-mmsic-files_test \
           --http-method=post \
           --time-zone="Europe/Berlin"
