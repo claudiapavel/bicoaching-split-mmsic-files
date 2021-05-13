@@ -43,7 +43,7 @@ jobs:
           --trigger-http \
           --service-account=180179603737-compute@developer.gserviceaccount.com
           
-        gcloud beta scheduler jobs delete mmsic-split-files --quiet
+        gcloud beta scheduler jobs delete mmsic-split-files
         
         echo "Deploy Cloud Scheduler"
         gcloud scheduler jobs create http mmsic-split-files \
